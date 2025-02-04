@@ -7,7 +7,7 @@ services:
       context: ./node
       dockerfile: Dockerfile
     container_name: node
-    entrypoint: dockerize -wait tcp://mysql-db:3306 -timeout 20s docker-entrypoint.sh
+    entrypoint: dockerize -wait tcp://mysql-db:3306 -timeout 20s docker-entrypoint.sh node index.js
     networks:
       - node-network
     tty: true
@@ -15,6 +15,7 @@ services:
       - "3000:3000"
     volumes:
       - ./node:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - mysql-db
 
@@ -37,6 +38,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     container_name: nginx
+    restart: always
     networks:
       - node-network
     tty: true

@@ -1,23 +1,44 @@
 const express = require('express');
 const app = express();
+
+const bodyParser = require('body-parser');
+const handlebars = require('express-handlebars');
+
+const People = require('./model/People');
+
 const port = 3000;
-const config = {
-    host: 'mysql-db',
-    user: 'root',
-    password: 'root',
-    database: 'nodedb'
-};
 
-const mysql = require('mysql');
-const connection = mysql.createConnection(config);
+//Configuração
+//Template Engine
+app.engine('handlebars', handlebars.engine({
+    defaultLayout: 'main',
+    runtimeOptions: {
+        allowProtoPropertiesByDefault: true,
+        allowProtoMethodsByDefault: true
+    }
+}));
+app.set('view engine', 'handlebars');
 
-const sql = `INSERT INTO people(name) VALUES ('Alessandro')`;
-connection.query(sql);
-connection.end();
+//Body parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-app.get('/', (request, response) =>{
-    response.send('<h1>Full Cycle</h1>');
+//Rotas
+app.get('/', (request, response) => {
+    People.create({
+        name: 'Alessandro'
+    }).then(() => {
+        response.redirect('/listar');
+    }).catch((error) => {
+        response.send('Erro: ' + error);
+    });
 });
+
+app.get('/listar', (request, response) => {
+    People.findAll({order: [['id', 'DESC']]}).then((peoples) => {
+        response.render('listar', { peoples: peoples });
+    });
+})
 
 app.listen(port, () => {
     console.log('Rodando na porta', port);
